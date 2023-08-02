@@ -1,0 +1,138 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import precision_score,recall_score,f1_score
+from sklearn import svm
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+import joblib
+data = pd.read_csv('winequality-red.csv')
+data.head()
+data.tail()
+data.shape
+print("Number of Rows",data.shape[0])
+print("Number of Columns",data.shape[1])
+data.info()
+data.isnull().sum()
+data.describe()
+data.columns
+plt.bar(data['quality'],data['fixed acidity'])
+plt.xlabel('Quality')
+plt.ylabel('fixed acidity')
+plt.show()
+plt.bar(data['quality'],data['volatile acidity'])
+plt.xlabel('Quality')
+plt.ylabel('Volatile acidity')
+plt.show()
+data.columns
+plt.bar(data['quality'],data['residual sugar'])
+plt.xlabel('Quality')
+plt.ylabel('residual sugar')
+plt.show()
+data.columns
+plt.bar(data['quality'],data['chlorides'])
+plt.xlabel('Quality')
+plt.ylabel('chlorides')
+plt.show()
+data.columns
+plt.bar(data['quality'],data['total sulfur dioxide'])
+plt.xlabel('Quality')
+plt.ylabel('total sulfur dioxide')
+plt.show()
+data.columns
+plt.bar(data['quality'],data['alcohol'])
+plt.xlabel('Quality')
+plt.ylabel('alcohol')
+plt.show()
+plt.figure(figsize=(10,5))
+sns.heatmap(data.corr(),annot=True,fmt='0.1f')
+data['quality'].unique()
+data['quality']=[1 if x>=7 else 0 for x in data['quality']]
+data['quality'].unique()
+data['quality'].value_counts()
+sns.countplot(data['quality'])
+X_res,y_res = SMOTE().fit_resample(X,y)
+y_res.value_counts()
+X = data.drop('quality',axis=1)
+y = data['quality']
+X_train,X_test,y_train,y_test = train_test_split(X_res,y_res,test_size=0.20,random_state=42)
+st  =StandardScaler()
+X_train = st.fit_transform(X_train)
+X_test = st.transform(X_test)
+pca = PCA(n_components=0.90)
+X_train = pca.fit_transform(X_train)
+X_test = pca.transform(X_test)
+sum(pca.explained_variance_ratio_)
+pca.explained_variance_ratio_
+log = LogisticRegression()
+log.fit(X_train,y_train)
+y_pred1 = log.predict(X_test)
+from sklearn.metrics import accuracy_score
+accuracy_score(y_test,y_pred1)
+precision_score(y_test,y_pred1)
+recall_score(y_test,y_pred1)
+f1_score(y_test,y_pred1)
+svm = svm.SVC()
+svm.fit(X_train,y_train)
+y_pred2 = svm.predict(X_test)
+accuracy_score(y_test,y_pred2)
+precision_score(y_test,y_pred2)
+f1_score(y_test,y_pred1)
+knn = KNeighborsClassifier()
+knn.fit(X_train,y_train)
+y_pred3 = knn.predict(X_test)
+accuracy_score(y_test,y_pred3)
+precision_score(y_test,y_pred3)
+recall_score(y_test,y_pred3)
+f1_score(y_test,y_pred3)
+from sklearn.tree import DecisionTreeClassifier
+dt =DecisionTreeClassifier()
+dt.fit(X_train,y_train)
+DecisionTreeClassifier()
+y_pred4 = dt.predict(X_test)
+accuracy_score(y_test,y_pred4)
+precision_score(y_test,y_pred4)
+f1_score(y_test,y_pred4)
+rf = RandomForestClassifier()
+rf.fit(X_train,y_train)
+y_pred5 = rf.predict(X_test)
+accuracy_score(y_test,y_pred5)
+precision_score(y_test,y_pred5)
+X = data.drop('quality',axis=1)
+y = data['quality']
+X_res,y_res = SMOTE().fit_resample(X,y)
+st = StandardScaler()
+X = st.fit_transform(X_res)
+X = pca.fit_transform(X)
+rf = RandomForestClassifier()
+rf.fit(X,y_res)
+RandomForestClassifier()
+joblib.dump(rf,'wine_quality_prediction')
+model = joblib.load('wine_quality_prediction')
+import pandas as pd
+new_data = pd.DataFrame({
+    'fixed acidity':7.3,
+    'volatile acidity':0.65,
+    'citric acid':0.00,
+    'residual sugar':1.2,
+    'chlorides':0.065,
+    'free sulfur dioxide':15.0,
+    'total sulfur dioxide':21.0,
+    'density':0.9946,
+    'pH':3.39,
+    'sulphates':0.47,
+    'alcohol':10.0,
+     
+},index=[0])
+new_data
+test = pca.transform(st.transform(new_data))
+p = model.predict(test)
+if p[0] == 1: 
+    print("Good Quality Wine")
+else:
+    print("Bad Quality Wine")
